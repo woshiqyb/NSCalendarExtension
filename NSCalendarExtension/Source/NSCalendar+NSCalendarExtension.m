@@ -12,6 +12,8 @@
 
 #if __NSCALENDAR_ALLOWS_COMPILE_INJECTING
 
+//关于此宏具体说明见：http://www.cnblogs.com/KeenLeung/p/5316862.html
+//在这两个宏之间的代码，所有简单指针对象都被假定为nonnull，因此我们只需要去指定那些nullable的指针
 NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - Private interface
@@ -40,6 +42,8 @@ void __ns_get_larger_units_and_keys(id self, SEL _cmd, NSCalendarUnit unit, NSCa
     // Find the lowest unit
     NSCalendarUnit unitFlag = unit;
     for (int i = 15; i >= 1; i--) {
+        //NSCalendarUnit中对应NSWeekCalendarUnit的IOS8已经废弃，
+        //使用其他值代替,故这里i=8时直接忽略
         if (i == 8) continue;
         NSCalendarUnit u = 1UL << i;
         if (unitFlag & u) {
@@ -271,6 +275,9 @@ NS_ASSUME_NONNULL_END
 
 @implementation NSCalendar (NSCalendarExtension)
 
+//initialize可能会调用多次（子类可能会调用），并且是线程安全的，
+//complex initialize可能会造成死锁
+//两者区别见：http://www.cnblogs.com/weiboyuan/p/5691074.html
 + (void)load
 {
     if (__ns_allows_runtime_injecting()) {
